@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import { Container } from 'reactstrap';
 import ENavbar from './Navbar';
+import classnames from 'classnames';
+import { Link } from 'react-router-dom';
 import {
   Col,
   Row,
@@ -9,7 +10,13 @@ import {
   CardHeader,
   CardBody,
   CardFooter,
-  CardTitle
+  CardTitle,
+  TabContent,
+  TabPane,
+  Container,
+  Nav,
+  NavItem,
+  NavLink
 } from 'reactstrap';
 import { Doughnut } from 'react-chartjs-2';
 import { Line } from 'react-chartjs-2';
@@ -41,7 +48,44 @@ export default class Analysis extends Component {
             hoverBackgroundColor: ['#006400', '#000080', '#8B0000']
           }
         ]
-      }
+      },
+      iconTabs: 1,
+      positiveTweets: [
+        {
+          avatar:
+            '"http://pbs.twimg.com/profile_images/997346755883819008/CV3b835r_normal.jpg"',
+          created: '"23/04/2019"',
+          followers: 503,
+          location: 'Pachwas',
+          text:
+            "RT @svaradarajan: A great decision but remember this folks, the taxpayers of Gujarat must now  pay for Chowkidar Narendra Modi's splendid c…",
+          user_name: 'Laboni Singh'
+        }
+      ],
+      neutralTweets: [
+        {
+          avatar:
+            '"http://pbs.twimg.com/profile_images/997346755883819008/CV3b835r_normal.jpg"',
+          created: '"23/04/2019"',
+          followers: 503,
+          location: 'Pachwas',
+          text:
+            "RT @svaradarajan: A great decision but remember this folks, the taxpayers of Gujarat must now  pay for Chowkidar Narendra Modi's splendid c…",
+          user_name: 'Laboni Singh'
+        }
+      ],
+      negativeTweets: [
+        {
+          avatar:
+            '"http://pbs.twimg.com/profile_images/997346755883819008/CV3b835r_normal.jpg"',
+          created: '"23/04/2019"',
+          followers: 503,
+          location: 'Pachwas',
+          text:
+            "RT @svaradarajan: A great decision but remember this folks, the taxpayers of Gujarat must now  pay for Chowkidar Narendra Modi's splendid c…",
+          user_name: 'Laboni Singh'
+        }
+      ]
     };
 
     console.log(this.props);
@@ -82,10 +126,39 @@ export default class Analysis extends Component {
         }
       ]
     };
+
+    axios.get('/api/tweets/getPositiveTweets/' + candidate_name).then(res1 => {
+      axios
+        .get('/api/tweets/getNegativeTweets/' + candidate_name)
+        .then(res2 => {
+          axios
+            .get('/api/tweets/getNeutralTweets/' + candidate_name)
+            .then(res3 => {
+              const positiveTweets = res1.data.tweets;
+              const negativeTweets = res2.data.tweets;
+              const neutralTweets = res3.data.tweets;
+
+              console.log('positive tweets: ', positiveTweets);
+              console.log('negative tweets: ', negativeTweets);
+              console.log('neutral tweets: ', neutralTweets);
+
+              this.setState({
+                selectedCandidate: candidate_name,
+                showAnalysis: true,
+                doughnutChartData,
+                positiveTweets,
+                negativeTweets,
+                neutralTweets
+              });
+            });
+        });
+    });
+  };
+
+  toggleTabs = (e, stateName, index) => {
+    e.preventDefault();
     this.setState({
-      selectedCandidate: candidate_name,
-      showAnalysis: true,
-      doughnutChartData
+      [stateName]: index
     });
   };
 
@@ -94,7 +167,10 @@ export default class Analysis extends Component {
       candidates,
       selectedCandidate,
       showAnalysis,
-      doughnutChartData
+      doughnutChartData,
+      positiveTweets,
+      neutralTweets,
+      negativeTweets
     } = this.state;
 
     let contentToShow;
@@ -105,13 +181,15 @@ export default class Analysis extends Component {
             {candidates.map(candidate => {
               return (
                 <Col className="mt-5 mt-sm-0" sm="3" xs="6">
-                  <img
-                    alt="..."
-                    className="img-fluid rounded-circle shadow-lg"
-                    src={require('candidates/' + candidate.name + '.jpg')}
-                    style={{ width: '100%' }}
-                    onClick={() => this.onCandidateSelect(candidate.name)}
-                  />
+                  <Link to="/analysis">
+                    <img
+                      alt="..."
+                      className="img-fluid rounded-circle shadow-lg"
+                      src={require('candidates/' + candidate.name + '.jpg')}
+                      style={{ width: '100%' }}
+                      onClick={() => this.onCandidateSelect(candidate.name)}
+                    />
+                  </Link>
                   <h5 className="d-block text-center mt-3 font-weight-bold mb-4">
                     {candidate.name}
                   </h5>
@@ -163,6 +241,172 @@ export default class Analysis extends Component {
               </CardBody>
             </Card>
           </Col>
+          <Container>
+            <div className="title">
+              <h3 className="mb-3">Trending Tweets</h3>
+            </div>
+            <Row>
+              <Col md="12">
+                <Card>
+                  <CardHeader>
+                    <Nav className="nav-tabs-info" role="tablist" tabs>
+                      <NavItem>
+                        <NavLink
+                          className={classnames({
+                            active: this.state.iconTabs === 1
+                          })}
+                          onClick={e => this.toggleTabs(e, 'iconTabs', 1)}
+                          href="#pablo"
+                        >
+                          <i className="tim-icons icon-spaceship" />
+                          Positive Tweets
+                        </NavLink>
+                      </NavItem>
+                      <NavItem>
+                        <NavLink
+                          className={classnames({
+                            active: this.state.iconTabs === 2
+                          })}
+                          onClick={e => this.toggleTabs(e, 'iconTabs', 2)}
+                          href="#pablo"
+                        >
+                          <i className="tim-icons icon-settings-gear-63" />
+                          Neutral Tweets
+                        </NavLink>
+                      </NavItem>
+                      <NavItem>
+                        <NavLink
+                          className={classnames({
+                            active: this.state.iconTabs === 3
+                          })}
+                          onClick={e => this.toggleTabs(e, 'iconTabs', 3)}
+                          href="#pablo"
+                        >
+                          <i className="tim-icons icon-bag-16" />
+                          Negative Tweets
+                        </NavLink>
+                      </NavItem>
+                    </Nav>
+                  </CardHeader>
+                  <CardBody>
+                    <TabContent
+                      className="tab-space"
+                      activeTab={'link' + this.state.iconTabs}
+                    >
+                      <TabPane tabId="link1">
+                        <Container>
+                          {positiveTweets.map((tweet, index) => {
+                            return (
+                              <div key={index}>
+                                <Row>
+                                  <div className="panel panel-default">
+                                    <div className="panel-body">
+                                      <div className="media">
+                                        <img
+                                          className="media-object rounded-circle"
+                                          src={tweet.avatar}
+                                          alt="..."
+                                        />
+                                        <div className="media-body ml-2">
+                                          <h4 className="media-heading">
+                                            {tweet.user_name} <br />
+                                            <small>
+                                              <i className="glyphicon glyphicon-time" />
+                                              &nbsp;{tweet.created}
+                                            </small>
+                                          </h4>
+                                        </div>
+                                      </div>
+                                      <p>{tweet.text}</p>
+                                    </div>
+                                  </div>
+                                </Row>
+                                <Row>
+                                  <hr className="line-primary" />
+                                </Row>
+                              </div>
+                            );
+                          })}
+                        </Container>
+                      </TabPane>
+                      <TabPane tabId="link2">
+                        <Container>
+                          {neutralTweets.map((tweet, index) => {
+                            return (
+                              <div key={index}>
+                                <Row>
+                                  <div className="panel panel-default">
+                                    <div className="panel-body">
+                                      <div className="media">
+                                        <img
+                                          className="media-object rounded-circle"
+                                          src={tweet.avatar}
+                                          alt="..."
+                                        />
+                                        <div className="media-body ml-2">
+                                          <h4 className="media-heading">
+                                            {tweet.user_name} <br />
+                                            <small>
+                                              <i className="glyphicon glyphicon-time" />
+                                              &nbsp;{tweet.created}
+                                            </small>
+                                          </h4>
+                                        </div>
+                                      </div>
+                                      <p>{tweet.text}</p>
+                                    </div>
+                                  </div>
+                                </Row>
+                                <Row>
+                                  <hr className="line-primary" />
+                                </Row>
+                              </div>
+                            );
+                          })}
+                        </Container>
+                      </TabPane>
+                      <TabPane tabId="link3">
+                        <Container>
+                          {negativeTweets.map((tweet, index) => {
+                            return (
+                              <div key={index}>
+                                <Row>
+                                  <div className="panel panel-default">
+                                    <div className="panel-body">
+                                      <div className="media">
+                                        <img
+                                          className="media-object rounded-circle"
+                                          src={tweet.avatar}
+                                          alt="..."
+                                        />
+                                        <div className="media-body ml-2">
+                                          <h4 className="media-heading">
+                                            {tweet.user_name} <br />
+                                            <small>
+                                              <i className="glyphicon glyphicon-time" />
+                                              &nbsp;{tweet.created}
+                                            </small>
+                                          </h4>
+                                        </div>
+                                      </div>
+                                      <p>{tweet.text}</p>
+                                    </div>
+                                  </div>
+                                </Row>
+                                <Row>
+                                  <hr className="line-primary" />
+                                </Row>
+                              </div>
+                            );
+                          })}
+                        </Container>
+                      </TabPane>
+                    </TabContent>
+                  </CardBody>
+                </Card>
+              </Col>
+            </Row>
+          </Container>
         </div>
       );
     }
